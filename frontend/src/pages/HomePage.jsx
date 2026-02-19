@@ -47,38 +47,35 @@ function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-950 via-gray-950 to-gray-950 px-8 py-6 flex flex-col">
 
-      {/* Top left project name */}
-      <p className="text-white font-bold text-lg tracking-widest">VARIANTX</p>
+      {/* Project name */}
+      <h1 className="text-5xl font-bold text-white tracking-widest text-center w-full">VARIANTRX</h1>
 
-      {/* Center content */}
-      <div className="flex flex-col items-center mt-16 mb-12">
-        {/* Big tagline */}
-        <h1 className="text-4xl font-bold text-white text-center leading-tight">
-          Predict. Personalize. Protect.
-        </h1>
-
-        {/* Smaller word.word.word tagline */}
-        <p className="text-gray-500 text-sm tracking-widest mt-3">
-          genomics.risk.precision
-        </p>
+      {/* Tagline */}
+      <div className="flex flex-col items-center mt-20">
+        <h2 className="text-4xl font-bold text-white text-center leading-tight whitespace-nowrap">
+          Turning Genetic Variants into Clear Clinical Guidance for Safer Therapeutic Outcomes.
+        </h2>
       </div>
 
-      {/* Upload and Drug selector card */}
-      <div className="max-w-2xl w-full mx-auto flex flex-col gap-6">
+      {/* word.word.word */}
+      <p className="text-gray-400 text-base tracking-widest text-center mt-6">
+        PREDICT. PREVENT. PERSONALIZE.
+      </p>
+
+      {/* Upload and Drug selector */}
+      <div className="max-w-4xl w-full mx-auto flex flex-col gap-10 mt-24">
 
         <VCFUploader onFileSelect={setFile} />
         <DrugSelector onDrugsChange={setSelectedDrugs} />
 
-        {/* Error */}
         {error && (
           <p className="text-red-400 text-sm text-center">{error}</p>
         )}
 
-        {/* Analyze button */}
         <button
           onClick={handleAnalyze}
           disabled={loading}
-          className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold tracking-wide transition mt-2"
+          className="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold tracking-wide transition text-lg"
         >
           {loading ? 'Analyzing...' : 'Analyze'}
         </button>

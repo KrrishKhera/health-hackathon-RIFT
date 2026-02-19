@@ -49,11 +49,11 @@ function VCFUploader({ onFileSelect }) {
       <div className="flex items-center gap-4">
         
         {/* Label */}
-        <p className="text-white font-semibold text-sm whitespace-nowrap">UPLOAD VCF FILE</p>
+        <p className="text-white font-semibold text-lg whitespace-nowrap">UPLOAD VCF FILE</p>
 
         {/* File display rectangle */}
         <div
-          className={`flex-1 px-4 py-2 rounded-lg border text-sm truncate
+          className={`flex-1 px-5 py-3 rounded-lg border text-base truncate
             ${isValid === null ? 'border-gray-600 text-gray-500' : ''}
             ${isValid === true ? 'border-green-500 text-green-300' : ''}
             ${isValid === false ? 'border-red-500 text-red-400' : ''}
