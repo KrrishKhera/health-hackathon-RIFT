@@ -45,10 +45,17 @@ function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-950 via-gray-950 to-gray-950 px-8 py-6 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-pink-950 via-gray-950 to-gray-950 px-8 py-6 flex flex-col overflow-y-auto relative">
 
       {/* Project name */}
       <h1 className="text-5xl font-bold text-white tracking-widest text-center w-full">VARIANTRX</h1>
+
+      <button
+        onClick={() => navigate('/')}
+        className="absolute top-10 left-8 flex items-center gap-2 text-gray-400 hover:text-white transition text-sm font-medium"
+      >
+        ← Back
+      </button>
 
       {/* Tagline */}
       <div className="flex flex-col items-center mt-20">
