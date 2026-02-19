@@ -1,7 +1,7 @@
 # VariantRX — Pharmacogenomic Risk Prediction System
 
 > **Transforming Genetic Data into Safer Prescriptions.**
-> AI-powered clinical decision support that analyzes patient VCF files to predict personalized drug risks and generate explainable, CPIC-aligned recommendations.
+> Clinical decision support that analyzes patient VCF files to predict personalized drug risks and generate explainable, CPIC-aligned recommendations — with zero external API dependencies.
 
 **RIFT 2026 Hackathon** · Pharmacogenomics / Explainable AI Track
 
@@ -18,11 +18,29 @@
 
 ---
 
+## Screenshots
+
+<!-- Add your screenshots below. Recommended: use a 2x2 collage or individual images -->
+
+| | |
+|---|---|
+| ![Home Page](screenshots/homepage.png) | ![Drug Selection](screenshots/drug-select.png) |
+| ![Risk Results](screenshots/results.png) | ![Clinical Explanation](screenshots/explanation.png) |
+
+<!-- To add screenshots:
+  1. Create a screenshots/ folder in the repo root
+  2. Take screenshots of: homepage, drug selector, results dashboard, expanded explanation
+  3. Save as homepage.png, drug-select.png, results.png, explanation.png
+  4. Push to GitHub — they will render automatically here
+-->
+
+---
+
 ## Problem Statement
 
 Adverse drug reactions kill over **100,000 Americans annually** — many of which are preventable through pharmacogenomic testing. A patient's genetic variants directly affect how their body metabolizes medications, yet this information is rarely integrated into prescribing decisions due to the complexity of interpreting genomic data.
 
-VariantRX bridges this gap by automating the full pipeline: from raw VCF genomic data to actionable clinical risk predictions with LLM-generated explanations grounded in published CPIC guidelines.
+VariantRX bridges this gap by automating the full pipeline: from raw VCF genomic data to actionable clinical risk predictions with structured explanations grounded in published CPIC guidelines.
 
 ---
 
@@ -31,10 +49,10 @@ VariantRX bridges this gap by automating the full pipeline: from raw VCF genomic
 - **VCF File Parsing** — Supports standard VCF v4.2 format with `GENE`, `STAR`, `RS` INFO tags
 - **Activity Score–Based Phenotype Derivation** — Any valid diplotype produces a phenotype via CPIC translation tables, not brittle string matching
 - **CPIC-Aligned Risk Prediction** — Safe / Adjust Dosage / Toxic / Ineffective across 6 drug-gene pairs
-- **LLM-Generated Clinical Explanations** — Gemini 2.5 Flash generates structured reports with variant citations, biological mechanisms, alternatives, and monitoring parameters
+- **Rule-Based Clinical Explanation Engine** — Deterministic, structured explanations with variant citations, biological mechanisms, alternatives, and monitoring parameters — instant and consistent, no external API
 - **Multi-Drug Analysis** — Analyze multiple drugs from a single VCF upload in one request
-- **Graceful Fallback** — Template-based explanation if LLM API is unavailable; never returns empty output
 - **Structured JSON Output** — Schema-compliant response for every request
+- **Zero External API Dependencies** — Fully self-contained backend, no rate limits, no API keys required
 
 ---
 
@@ -59,8 +77,7 @@ VariantRX bridges this gap by automating the full pipeline: from raw VCF genomic
 | Python 3.11 | Runtime |
 | FastAPI | REST API framework |
 | Uvicorn | ASGI server |
-| Google Gemini 2.5 Flash | LLM-generated clinical explanations |
-| python-dotenv | Environment variable management |
+| Rule-Based Explanation Engine | Deterministic clinical explanations per CPIC guidelines |
 | python-multipart | VCF file upload handling |
 
 ### Frontend
@@ -99,7 +116,7 @@ Browser (React Frontend)
 │  │    from INFO field              │     │
 │  │  • Builds diplotype from        │     │
 │  │    genotype (0/0→*1/*1,         │     │
-│  │    0/1→*1/STAR, 1/1→STAR/STAR)  │     │
+│  │    0/1→*1/STAR, 1/1→STAR/STAR) │     │
 │  └────────────────┬────────────────┘     │
 │                   │                      │
 │  ┌────────────────▼────────────────┐     │
@@ -107,20 +124,23 @@ Browser (React Frontend)
 │  │  • Activity score lookup        │     │
 │  │    per star allele per gene     │     │
 │  │  • Score → Phenotype            │     │
-│  │    (PM/IM/NM/RM/URM)            │     │
+│  │    (PM/IM/NM/RM/URM)           │     │
 │  │  • Phenotype + Drug →           │     │
 │  │    CPIC risk label +            │     │
 │  │    confidence + severity        │     │
 │  └────────────────┬────────────────┘     │
 │                   │                      │
 │  ┌────────────────▼────────────────┐     │
-│  │         LLM Engine              │     │
-│  │  • Builds structured prompt     │     │
-│  │    with diplotype, phenotype,   │     │
-│  │    activity score, variants     │     │
-│  │  • Calls Gemini 2.5 Flash       │     │
-│  │  • Parses JSON response         │     │
-│  │  • Fallback if API fails        │     │
+│  │   Rule-Based Explanation Engine │     │
+│  │  • Deterministic templates      │     │
+│  │    per gene, phenotype, drug    │     │
+│  │  • Cites detected variants      │     │
+│  │    and activity scores          │     │
+│  │  • Biological mechanism per     │     │
+│  │    gene pathway                 │     │
+│  │  • CPIC-aligned alternatives    │     │
+│  │    and monitoring parameters    │     │
+│  │  • Instant — zero latency       │     │
 │  └─────────────────────────────────┘     │
 └──────────────────────────────────────────┘
         │
@@ -129,7 +149,7 @@ Browser (React Frontend)
 Browser → ResultDashboard
   • Color-coded risk labels
   • Tabbed multi-drug view
-  • Expandable LLM explanation
+  • Expandable clinical explanation
   • Download / Copy JSON
 ```
 
@@ -145,6 +165,15 @@ CYP2D6 *1/*4:
   CODEINE + IM  →  Ineffective (0.85 confidence, moderate severity)
 ```
 
+### Explanation Engine Design
+
+Rather than relying on an external LLM API, VariantRX uses a deterministic rule-based explanation engine. Each explanation is composed from clinically validated templates parameterized by gene, diplotype, phenotype, activity score, and detected variants. This approach guarantees:
+
+- **Consistency** — identical inputs always produce identical outputs
+- **Speed** — zero network latency, sub-millisecond generation
+- **Reliability** — no API rate limits, quota exhaustion, or downtime
+- **Clinical accuracy** — templates written directly from CPIC guideline text
+
 ---
 
 ## Project Structure
@@ -153,15 +182,15 @@ CYP2D6 *1/*4:
 ├── backend/
 │   ├── main.py              # FastAPI app, VCF parsing, request handling
 │   ├── model_engine.py      # Activity scores, phenotype derivation, CPIC rules
-│   ├── llm_engine.py        # Gemini integration, prompt engineering, fallback
+│   ├── llm_engine.py        # Rule-based clinical explanation engine
 │   ├── requirements.txt     # Python dependencies
 │   └── runtime.txt          # Python version pin (3.11.0)
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx           # Router setup
+│   │   ├── App.jsx                    # Router setup
 │   │   ├── pages/
-│   │   │   ├── HomePage.jsx          # Upload + drug selection
-│   │   │   └── ResultDashboard.jsx   # Results display
+│   │   │   ├── HomePage.jsx           # Upload + drug selection
+│   │   │   └── ResultDashboard.jsx    # Results display
 │   │   └── components/
 │   │       ├── VCFUploader.jsx
 │   │       └── DrugSelector.jsx
@@ -179,7 +208,7 @@ CYP2D6 *1/*4:
 ### Prerequisites
 - Python 3.11+
 - Node.js 18+
-- Google Gemini API key → [Get one here](https://aistudio.google.com/)
+- No API keys required
 
 ---
 
@@ -187,8 +216,8 @@ CYP2D6 *1/*4:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-org/variantrx.git
-cd variantrx
+git clone https://github.com/KrrishKhera/health-hackathon-RIFT.git
+cd health-hackathon-RIFT
 
 # 2. Create and activate virtual environment
 python -m venv venv
@@ -202,11 +231,7 @@ source venv/bin/activate
 cd backend
 pip install -r requirements.txt
 
-# 4. Set up environment variables
-cp .env.example .env
-# Open .env and add your GEMINI_API_KEY
-
-# 5. Start the backend server
+# 4. Start the backend server
 uvicorn main:app --reload --port 8000
 ```
 
@@ -224,8 +249,7 @@ cd frontend
 # 1. Install dependencies
 npm install
 
-# 2. Set environment variable
-# Create frontend/.env with:
+# 2. Create frontend/.env
 echo "VITE_BACKEND_URL=http://localhost:8000" > .env
 
 # 3. Start dev server
@@ -238,21 +262,17 @@ Frontend running at: `http://localhost:5173`
 
 ### Environment Variables
 
-**Backend** — `backend/.env`
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
-```
-
-**Frontend** — `frontend/.env`
+**Frontend only** — `frontend/.env`
 ```env
 VITE_BACKEND_URL=http://localhost:8000
 ```
 
-**`.env.example`** (committed to repo, no real keys)
+**`.env.example`**
 ```env
-GEMINI_API_KEY=your_gemini_api_key_here
 VITE_BACKEND_URL=http://localhost:8000
 ```
+
+No backend environment variables required.
 
 ---
 
@@ -274,7 +294,7 @@ Analyzes a VCF file for pharmacogenomic risk against one or more drugs.
 
 **Example Request**
 ```bash
-curl -X POST https://your-api.onrender.com/analyze \
+curl -X POST https://health-hackathon-rift.onrender.com/analyze \
   -F "file=@sample_vcfs/cyp2d6_im.vcf" \
   -F "drug=CODEINE" \
   -F "drug=WARFARIN"
@@ -326,7 +346,7 @@ curl -X POST https://your-api.onrender.com/analyze \
     "gene_variants_for_drug": 1,
     "diplotype_source": "vcf_parsed",
     "annotation_completeness": 1.0,
-    "llm_explanation_status": "generated"
+    "llm_explanation_status": "rule_based"
   }
 }
 ```
@@ -374,7 +394,6 @@ Start Command:   python -m uvicorn main:app --host 0.0.0.0 --port $PORT
 ```
 5. Environment Variables:
 ```
-GEMINI_API_KEY = your_key_here
 PYTHON_VERSION = 3.11.0
 ```
 6. Deploy
@@ -407,7 +426,7 @@ VITE_BACKEND_URL = https://health-hackathon-rift.onrender.com
    - 🟢 **Safe** — standard dosing recommended
    - 🟡 **Adjust Dosage** — dose modification required
    - 🔴 **Toxic / Ineffective** — avoid or switch to alternative
-6. Expand each section to read the full LLM-generated clinical explanation
+6. Expand each section to read the structured clinical explanation
 7. Download or copy the structured JSON output
 
 ---
@@ -418,8 +437,9 @@ VITE_BACKEND_URL = https://health-hackathon-rift.onrender.com
 |------|------|
 | Krrish Khera | Backend, Deployment |
 | Aman Anilkumar | Frontend, UI/UX, Deployment |
-| Vaibhav Jain | Model Engine, LLM Integration |
+| Vaibhav Jain | Model Engine, Explanation Engine |
 
+---
 
 ## Clinical Disclaimer
 
