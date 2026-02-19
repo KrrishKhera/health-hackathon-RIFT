@@ -8,7 +8,7 @@ function ActionButtons({ data }) {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `${data.patient_id}_report.json`
+    link.download = `${data.patient_id || 'pharma'}_report.json`
     link.click()
     URL.revokeObjectURL(url)
   }

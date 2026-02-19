@@ -34,7 +34,9 @@ function HomePage() {
         formData
       )
 
-      navigate('/dashboard', { state: { result: response.data } })
+      const data = response.data
+      const results = Array.isArray(data) ? data : [data]
+      navigate('/dashboard', { state: { results } })
     } catch (err) {
       setError(err.response?.data?.detail || 'Something went wrong. Please try again.')
     } finally {
