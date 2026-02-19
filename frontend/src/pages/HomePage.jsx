@@ -53,7 +53,7 @@ function HomePage() {
       {/* Tagline */}
       <div className="flex flex-col items-center mt-20">
         <h2 className="text-4xl font-bold text-white text-center leading-tight whitespace-nowrap">
-          Turning Genetic Variants into Clear Clinical Guidance for Safer Therapeutic Outcomes.
+          Transforming Genetic Data into Safer Prescriptions.
         </h2>
       </div>
 

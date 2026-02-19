@@ -37,18 +37,15 @@ function ResultDashboard() {
       </h1>
 
       {/* Analysis Complete */}
-      <div className="flex flex-col items-center mt-12 mb-6">
-        <h1 className="text-4xl font-bold text-white text-center">
-          Analysis Complete
+      <div className="flex flex-col items-center mt-20 mb-6">
+        <h1 className="text-5xl font-bold text-white text-center">
+          ANALYSIS COMPLETE!
         </h1>
-        <p className="text-gray-500 text-sm tracking-widest mt-2">
-          results.ready.now
-        </p>
       </div>
 
       {/* Drug Tabs — only show if multiple drugs */}
       {results.length > 1 && (
-        <div className="flex gap-3 justify-center mb-8">
+        <div className="flex gap-5 justify-center mb-10">
           {results.map((r, i) => (
             <button
               key={i}
