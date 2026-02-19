@@ -27,7 +27,7 @@ function HomePage() {
     try {
       const formData = new FormData()
       formData.append('file', file)
-      formData.append('drug', selectedDrugs.join(','))
+      selectedDrugs.forEach(drug => formData.append('drug', drug))
 
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/analyze`,
