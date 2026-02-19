@@ -1,0 +1,18 @@
+##fileformat=VCFv4.2
+##fileDate=20260219
+##source=PharmaGuard_TestSuite_v1
+##reference=GRCh38
+##INFO=<ID=GENE,Number=1,Type=String,Description="Gene Symbol">
+##INFO=<ID=STAR,Number=1,Type=String,Description="Star Allele">
+##INFO=<ID=RS,Number=1,Type=String,Description="dbSNP rsID">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allele Depth">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	PATIENT_MULTI_009
+chr22	42130692	rs3892097	C	T	100	PASS	GENE=CYP2D6;STAR=*4;RS=rs3892097	GT:DP:GQ:AD	1/1:312:99:4,308
+chr10	94781859	rs4244285	G	A	100	PASS	GENE=CYP2C19;STAR=*2;RS=rs4244285	GT:DP:GQ:AD	0/1:289:97:144,145
+chr10	94981296	rs1057910	A	C	100	PASS	GENE=CYP2C9;STAR=*3;RS=rs1057910	GT:DP:GQ:AD	0/1:274:96:137,137
+chr12	21178615	rs4149056	T	C	100	PASS	GENE=SLCO1B1;STAR=*5;RS=rs4149056	GT:DP:GQ:AD	0/1:301:97:150,151
+chr6	18143122	rs1142345	A	G	100	PASS	GENE=TPMT;STAR=*3C;RS=rs1142345	GT:DP:GQ:AD	1/1:267:99:3,264
+chr1	97915614	rs3918290	C	T	100	PASS	GENE=DPYD;STAR=*2A;RS=rs3918290	GT:DP:GQ:AD	0/1:318:96:159,159
