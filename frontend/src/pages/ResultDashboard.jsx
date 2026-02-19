@@ -35,7 +35,7 @@ function ResultDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-pink-950 via-gray-950 to-gray-950 px-8 py-10 overflow-y-auto relative">
 
       {/* Top left project name */}
-      <h1 onClick={() => navigate('/')} className="text-5xl font-bold text-white tracking-widest text-center w-full cursor-pointer hover:text-pink-400 transition">
+      <h1 onClick={() => navigate('/')} className="flex items-center gap-2 px-6 py-3 bg-green-400 hover:bg-gray-600 text-white rounded-xl font-medium transition">
         VARIANTRX
       </h1>
 
