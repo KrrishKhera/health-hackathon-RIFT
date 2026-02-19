@@ -20,19 +20,12 @@
 
 ## Screenshots
 
-<!-- Add your screenshots below. Recommended: use a 2x2 collage or individual images -->
-
 | | |
 |---|---|
-| ![Home Page](screenshots/homepage.png) | ![Drug Selection](screenshots/drug-select.png) |
-| ![Risk Results](screenshots/results.png) | ![Clinical Explanation](screenshots/explanation.png) |
+| <img width="600" src="https://github.com/user-attachments/assets/1ccb6131-849a-41a0-acee-e5d198e8281d" /> | <img width="600" src="https://github.com/user-attachments/assets/b0b7f519-a4b8-409b-9910-2e697e260280" /> |
+| <img width="600" src="https://github.com/user-attachments/assets/e2aef9ad-a512-46f5-af5a-ec38c0e8102a" /> | <img width="600" src="https://github.com/user-attachments/assets/9fbc81de-4800-4456-89e0-4745b5da2127" /> |
 
-<!-- To add screenshots:
-  1. Create a screenshots/ folder in the repo root
-  2. Take screenshots of: homepage, drug selector, results dashboard, expanded explanation
-  3. Save as homepage.png, drug-select.png, results.png, explanation.png
-  4. Push to GitHub — they will render automatically here
--->
+<img width="1280" src="https://github.com/user-attachments/assets/e7873339-df54-4f24-ad8b-0842182415cb" />
 
 ---
 
@@ -444,3 +437,4 @@ VITE_BACKEND_URL = https://health-hackathon-rift.onrender.com
 ## Clinical Disclaimer
 
 VariantRX is a **research and educational prototype** built for the RIFT 2026 Hackathon. It is not a certified medical device and must not be used for actual clinical decision-making without review by a licensed clinical pharmacist or physician. All risk predictions are based on published CPIC guidelines (2017–2022) and are intended to demonstrate the feasibility of AI-assisted pharmacogenomic decision support.
+
