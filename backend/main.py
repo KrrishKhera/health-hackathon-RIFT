@@ -18,6 +18,9 @@ SUPPORTED_DRUGS = [
     "CODEINE", "WARFARIN", "CLOPIDOGREL",
     "SIMVASTATIN", "AZATHIOPRINE", "FLUOROURACIL"
 ]#these 6 drugs aman and vaibhav
+@app.get("/health")
+def health_check():
+    return {"status":"running"}
 @app.post("/analyze")
 async def analyze(
     drug: str = Form(...),
@@ -125,17 +128,21 @@ async def analyze(
         if primary_gene == "Unknown" and gene:
             primary_gene = gene
 
-    if not detected_variants:
-        parsing_success = False
-    else:
-        parsing_success = True
     # Ensure a diplotype exists before passing it, otherwise use 'Unknown'
     parsing_success = len(detected_variants)>0
     final_diplotype = detected_variants[0]["diplotype"] if detected_variants else "Unknown"
 
     # 1. Call the engine
-    risk_assessment, phenotype, recommendation = predict_risk(drug, primary_gene, final_diplotype)
-
+    try:
+        risk_assessment, phenotype, recommendation = predict_risk(drug, primary_gene, final_diplotype)
+    except Exception as e:
+        risk_assessment = {
+            "risk_label": "Unknown",
+            "confidence_score": 0.0,
+            "severity": "none"
+        }
+    phenotype = "Unknown"
+    recommendation = {}
     # 2. Return the structured response
     return {
         "patient_id": f"PATIENT_{uuid.uuid4().hex[:6]}",
