@@ -49,7 +49,7 @@ function VCFUploader({ onFileSelect }) {
       <div className="flex items-center gap-4">
         
         {/* Label */}
-        <p className="text-white font-semibold text-lg whitespace-nowrap">UPLOAD VCF FILE</p>
+        <p className="text-white font text-lg whitespace-nowrap">Upload .vcf file</p>
 
         {/* File display rectangle */}
         <div
