@@ -1,169 +1,257 @@
-# VariantRx
-### Pharmacogenomic Risk Prediction System
+# VariantRX — Pharmacogenomic Risk Prediction System
 
-> AI-powered clinical decision support that analyzes patient genetic data (VCF files) to predict personalized drug risks and generate explainable recommendations — aligned with CPIC guidelines.
+> **Transforming Genetic Data into Safer Prescriptions.**
+> AI-powered clinical decision support that analyzes patient VCF files to predict personalized drug risks and generate explainable, CPIC-aligned recommendations.
 
 **RIFT 2026 Hackathon** · Pharmacogenomics / Explainable AI Track
 
 ---
 
-## 🔗 Links
+## 🔗 Submission Links
 
 | | |
 |---|---|
-| 🌐 Live Demo | `[your-deployed-url]` |
-| 🎥 LinkedIn Demo Video | `[your-linkedin-video-url]` |
-| 📦 GitHub Repository | `https://github.com/KrrishKhera/health-hackathon-RIFT.git` |
+| 🌐 **Live Demo** | https://health-hackathon-rift.vercel.app |
+| 🎥 **LinkedIn Video** | `[your-linkedin-video-url]` |
+| 📦 **GitHub Repository** | https://github.com/KrrishKhera/health-hackathon-RIFT.git |
+| ⚙️ **Backend API** | https://health-hackathon-rift.onrender.com |
 
 ---
 
-## What It Does
+## Problem Statement
 
-Adverse drug reactions kill over 100,000 Americans annually — many preventable through pharmacogenomic testing. PharmaGuard bridges the gap between raw genomic data and clinical action:
+Adverse drug reactions kill over **100,000 Americans annually** — many of which are preventable through pharmacogenomic testing. A patient's genetic variants directly affect how their body metabolizes medications, yet this information is rarely integrated into prescribing decisions due to the complexity of interpreting genomic data.
 
-1. **Upload a VCF file** — standard genomic variant format from any sequencing provider
-2. **Select a drug** — from 6 clinically critical medications
-3. **Get a risk prediction** — Safe / Adjust Dosage / Toxic / Ineffective, grounded in CPIC guidelines
-4. **Read an AI-generated clinical explanation** — with specific variant citations, biological mechanisms, and dosing alternatives
+VariantRX bridges this gap by automating the full pipeline: from raw VCF genomic data to actionable clinical risk predictions with LLM-generated explanations grounded in published CPIC guidelines.
 
 ---
 
-## Supported Drugs & Genes
+## Features
 
-| Drug | Primary Gene | Clinical Concern |
-|------|-------------|-----------------|
-| Codeine | CYP2D6 | Morphine toxicity in ultrarapid metabolizers; lack of efficacy in poor metabolizers |
-| Warfarin | CYP2C9 | Bleeding risk due to reduced anticoagulant clearance |
-| Clopidogrel | CYP2C19 | Antiplatelet failure in poor/intermediate metabolizers |
-| Simvastatin | SLCO1B1 | Myopathy risk from impaired hepatic transport |
-| Azathioprine | TPMT | Fatal myelosuppression in poor metabolizers |
-| Fluorouracil | DPYD | Life-threatening systemic toxicity |
+- **VCF File Parsing** — Supports standard VCF v4.2 format with `GENE`, `STAR`, `RS` INFO tags
+- **Activity Score–Based Phenotype Derivation** — Any valid diplotype produces a phenotype via CPIC translation tables, not brittle string matching
+- **CPIC-Aligned Risk Prediction** — Safe / Adjust Dosage / Toxic / Ineffective across 6 drug-gene pairs
+- **LLM-Generated Clinical Explanations** — Gemini 2.5 Flash generates structured reports with variant citations, biological mechanisms, alternatives, and monitoring parameters
+- **Multi-Drug Analysis** — Analyze multiple drugs from a single VCF upload in one request
+- **Graceful Fallback** — Template-based explanation if LLM API is unavailable; never returns empty output
+- **Structured JSON Output** — Schema-compliant response for every request
+
+---
+
+## Supported Drug–Gene Pairs
+
+| Drug | Gene | Phenotypes | Primary Risk |
+|------|------|-----------|-------------|
+| Codeine | CYP2D6 | PM, IM, NM, RM, URM | Toxicity (URM) / Inefficacy (PM) |
+| Warfarin | CYP2C9 | PM, IM, NM | Bleeding risk |
+| Clopidogrel | CYP2C19 | PM, IM, NM, RM, URM | Antiplatelet failure |
+| Simvastatin | SLCO1B1 | Poor/Decreased/Normal Function | Myopathy |
+| Azathioprine | TPMT | PM, IM, NM | Fatal myelosuppression |
+| Fluorouracil | DPYD | PM, IM, NM | Life-threatening systemic toxicity |
 
 ---
 
 ## Tech Stack
 
-**Backend**
-- [FastAPI](https://fastapi.tiangolo.com/) — REST API framework
-- Python 3.10+
-- Google Gemini 2.5 Flash — LLM-generated clinical explanations
-- Custom pharmacogenomic engine — activity score–based phenotype derivation
-- CPIC guideline rules — hardcoded from published 2017–2022 guidelines
+### Backend
+| Technology | Purpose |
+|-----------|---------|
+| Python 3.11 | Runtime |
+| FastAPI | REST API framework |
+| Uvicorn | ASGI server |
+| Google Gemini 2.5 Flash | LLM-generated clinical explanations |
+| python-dotenv | Environment variable management |
+| python-multipart | VCF file upload handling |
 
-**Frontend**
-- React (Vite)
-- Plain CSS — no UI library dependencies
+### Frontend
+| Technology | Purpose |
+|-----------|---------|
+| React 18 | UI framework |
+| Vite | Build tool |
+| React Router v6 | Client-side routing |
+| Axios | HTTP client |
+| Tailwind CSS | Styling |
 
-**Deployment**
-- Backend: Render / Railway / any WSGI host
-- Frontend: Vercel / Netlify
+### Deployment
+| Service | Purpose |
+|---------|---------|
+| Render | Backend hosting |
+| Vercel | Frontend hosting |
 
 ---
 
 ## Architecture
 
 ```
-VCF File Upload
-      │
-      ▼
-┌─────────────────────────────────┐
-│         FastAPI /analyze        │
-│                                 │
-│  1. VCF Parser                  │
-│     • Extracts GENE, STAR, RS   │
-│       tags from INFO field      │
-│     • Builds diplotype from     │
-│       genotype (0/0, 0/1, 1/1) │
-│                                 │
-│  2. Model Engine                │
-│     • Activity score lookup     │
-│       per star allele           │
-│     • Score → Phenotype         │
-│       (PM/IM/NM/RM/URM)        │
-│     • Phenotype + Drug →        │
-│       CPIC risk label           │
-│                                 │
-│  3. LLM Engine (Gemini)         │
-│     • Prompt includes diplotype,│
-│       phenotype, activity score,│
-│       and detected variants     │
-│     • Returns structured JSON   │
-│       with mechanism, impact,   │
-│       alternatives, monitoring  │
-│     • Graceful fallback if API  │
-│       call fails                │
-└─────────────────────────────────┘
-      │
-      ▼
-  Structured JSON Response
-  (matches required schema exactly)
+Browser (React Frontend)
+        │
+        │  POST /analyze
+        │  multipart/form-data
+        │  { file: .vcf, drug: [...] }
+        ▼
+┌──────────────────────────────────────────┐
+│           FastAPI Backend                │
+│                                          │
+│  ┌─────────────────────────────────┐     │
+│  │         VCF Parser              │     │
+│  │  • Reads ##fileformat header    │     │
+│  │  • Extracts GENE, STAR, RS      │     │
+│  │    from INFO field              │     │
+│  │  • Builds diplotype from        │     │
+│  │    genotype (0/0→*1/*1,         │     │
+│  │    0/1→*1/STAR, 1/1→STAR/STAR)  │     │
+│  └────────────────┬────────────────┘     │
+│                   │                      │
+│  ┌────────────────▼────────────────┐     │
+│  │        Model Engine             │     │
+│  │  • Activity score lookup        │     │
+│  │    per star allele per gene     │     │
+│  │  • Score → Phenotype            │     │
+│  │    (PM/IM/NM/RM/URM)            │     │
+│  │  • Phenotype + Drug →           │     │
+│  │    CPIC risk label +            │     │
+│  │    confidence + severity        │     │
+│  └────────────────┬────────────────┘     │
+│                   │                      │
+│  ┌────────────────▼────────────────┐     │
+│  │         LLM Engine              │     │
+│  │  • Builds structured prompt     │     │
+│  │    with diplotype, phenotype,   │     │
+│  │    activity score, variants     │     │
+│  │  • Calls Gemini 2.5 Flash       │     │
+│  │  • Parses JSON response         │     │
+│  │  • Fallback if API fails        │     │
+│  └─────────────────────────────────┘     │
+└──────────────────────────────────────────┘
+        │
+        │  Structured JSON Response
+        ▼
+Browser → ResultDashboard
+  • Color-coded risk labels
+  • Tabbed multi-drug view
+  • Expandable LLM explanation
+  • Download / Copy JSON
+```
+
+### Phenotype Derivation Model
+
+```
+Diplotype  →  Per-allele activity scores  →  Total score  →  Phenotype
+
+CYP2D6 *1/*4:
+  *1 = 1.0 (wildtype, normal function)
+  *4 = 0.0 (non-functional, splice defect at rs3892097)
+  Total = 1.0  →  Intermediate Metabolizer (IM)
+  CODEINE + IM  →  Ineffective (0.85 confidence, moderate severity)
 ```
 
 ---
 
-## How Phenotype Is Derived
-
-Unlike naive string-matching approaches, PharmaGuard uses an **activity score model** per CPIC translation tables:
+## Project Structure
 
 ```
-Diplotype → Per-allele activity scores → Total score → Phenotype
-
-Example: CYP2D6 *1/*4
-  *1 → 1.0 (normal function)
-  *4 → 0.0 (non-functional, loss-of-function splice defect)
-  Total = 1.0 → Intermediate Metabolizer (IM)
-  CODEINE + IM → Ineffective (reduced morphine conversion)
+├── backend/
+│   ├── main.py              # FastAPI app, VCF parsing, request handling
+│   ├── model_engine.py      # Activity scores, phenotype derivation, CPIC rules
+│   ├── llm_engine.py        # Gemini integration, prompt engineering, fallback
+│   ├── requirements.txt     # Python dependencies
+│   └── runtime.txt          # Python version pin (3.11.0)
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx           # Router setup
+│   │   ├── pages/
+│   │   │   ├── HomePage.jsx          # Upload + drug selection
+│   │   │   └── ResultDashboard.jsx   # Results display
+│   │   └── components/
+│   │       ├── VCFUploader.jsx
+│   │       └── DrugSelector.jsx
+│   ├── vercel.json          # SPA routing fix for Vercel
+│   └── package.json
+├── sample_vcfs/             # Test VCF files
+├── .env.example
+└── README.md
 ```
-
-This means **any valid diplotype produces a phenotype** — not just a hardcoded list of combinations.
 
 ---
 
-## Installation & Setup
+## Local Setup & Installation
 
 ### Prerequisites
-- Python 3.10+
+- Python 3.11+
 - Node.js 18+
-- Google Gemini API key ([get one here](https://aistudio.google.com/))
+- Google Gemini API key → [Get one here](https://aistudio.google.com/)
+
+---
 
 ### Backend
 
 ```bash
-# Clone the repo
-git clone https://github.com/your-org/pharmaguard.git
-cd pharmaguard/backend
+# 1. Clone the repository
+git clone https://github.com/your-org/variantrx.git
+cd variantrx
 
-# Install dependencies
+# 2. Create and activate virtual environment
+python -m venv venv
+
+# Windows:
+venv\Scripts\activate
+# macOS/Linux:
+source venv/bin/activate
+
+# 3. Install dependencies
+cd backend
 pip install -r requirements.txt
 
-# Set up environment variables
+# 4. Set up environment variables
 cp .env.example .env
-# Edit .env and add your GEMINI_API_KEY
+# Open .env and add your GEMINI_API_KEY
 
-# Run the server
+# 5. Start the backend server
 uvicorn main:app --reload --port 8000
 ```
+
+Backend running at: `http://localhost:8000`
+API docs at: `http://localhost:8000/docs`
+
+---
 
 ### Frontend
 
 ```bash
-cd pharmaguard/frontend
+# From project root
+cd frontend
 
-# Install dependencies
+# 1. Install dependencies
 npm install
 
-# Set API URL (edit src/config.js or set env var)
-# Default points to http://localhost:8000
+# 2. Set environment variable
+# Create frontend/.env with:
+echo "VITE_BACKEND_URL=http://localhost:8000" > .env
 
-# Run dev server
+# 3. Start dev server
 npm run dev
 ```
 
+Frontend running at: `http://localhost:5173`
+
+---
+
 ### Environment Variables
 
-```bash
-# .env (backend)
+**Backend** — `backend/.env`
+```env
 GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+**Frontend** — `frontend/.env`
+```env
+VITE_BACKEND_URL=http://localhost:8000
+```
+
+**`.env.example`** (committed to repo, no real keys)
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+VITE_BACKEND_URL=http://localhost:8000
 ```
 
 ---
@@ -172,19 +260,27 @@ GEMINI_API_KEY=your_gemini_api_key_here
 
 ### `POST /analyze`
 
-Analyzes a VCF file for pharmacogenomic risk.
+Analyzes a VCF file for pharmacogenomic risk against one or more drugs.
 
 **Request** — `multipart/form-data`
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `file` | `.vcf` file | VCF v4.2 file, max 5MB. Must contain `GENE`, `STAR`, `RS` INFO tags. |
-| `drug` | string | Drug name. Supports single or comma-separated list. |
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `file` | `.vcf` file | Yes | VCF v4.2 file. Max 5MB. Must contain `GENE`, `STAR`, `RS` INFO tags. |
+| `drug` | string | Yes | Drug name(s). Comma-separated or multiple fields. Case-insensitive. |
 
-**Supported drug values:** `CODEINE`, `WARFARIN`, `CLOPIDOGREL`, `SIMVASTATIN`, `AZATHIOPRINE`, `FLUOROURACIL`
+**Supported drug values:**
+`CODEINE` · `WARFARIN` · `CLOPIDOGREL` · `SIMVASTATIN` · `AZATHIOPRINE` · `FLUOROURACIL`
 
-**Response** — `application/json`
+**Example Request**
+```bash
+curl -X POST https://your-api.onrender.com/analyze \
+  -F "file=@sample_vcfs/cyp2d6_im.vcf" \
+  -F "drug=CODEINE" \
+  -F "drug=WARFARIN"
+```
 
+**Response Schema**
 ```json
 {
   "patient_id": "PATIENT_A3F2C1",
@@ -235,27 +331,31 @@ Analyzes a VCF file for pharmacogenomic risk.
 }
 ```
 
-**Multiple drugs** — pass `drug` as comma-separated or multiple form fields. Response will be an array.
+For multiple drugs, response is an array of the above objects.
 
-**Error responses**
+**Error Responses**
 
-| Code | Reason |
+| Code | Detail |
 |------|--------|
-| 400 | Invalid file format, file too large, unsupported drug, malformed VCF |
+| 400 | Invalid file format — only `.vcf` allowed |
+| 400 | File size exceeds 5MB limit |
+| 400 | Unsupported drug(s) |
+| 400 | Invalid VCF header format |
+| 400 | Missing `#CHROM` column header |
 | 500 | Internal server error |
 
 ---
 
 ## Sample VCF Files
 
-Sample VCF files for testing are included in `/samples/`:
+Located in `sample_vcfs/`. Use these to test the application:
 
-| File | Variants | Good for testing |
-|------|----------|-----------------|
-| `sample_cyp2d6_im.vcf` | CYP2D6 *1/*4 | CODEINE → Ineffective |
-| `sample_cyp2c19_pm.vcf` | CYP2C19 *2/*2 | CLOPIDOGREL → Ineffective |
-| `sample_multi_gene.vcf` | CYP2D6 + CYP2C19 | Multi-drug analysis |
-| `sample_wildtype.vcf` | All *1/*1 | Baseline / Safe results |
+| File | Gene Variant | Best Drug to Test | Expected Result |
+|------|-------------|------------------|-----------------|
+| `cyp2d6_im.vcf` | CYP2D6 *1/*4 | CODEINE | Ineffective (IM) |
+| `cyp2c19_pm.vcf` | CYP2C19 *2/*2 | CLOPIDOGREL | Ineffective (PM) |
+| `multi_gene.vcf` | CYP2D6 + CYP2C19 | CODEINE + CLOPIDOGREL | Multi-drug results |
+| `wildtype.vcf` | All *1/*1 | Any | Safe (NM) |
 
 ---
 
@@ -264,41 +364,51 @@ Sample VCF files for testing are included in `/samples/`:
 ### Backend (Render)
 
 1. Push to GitHub
-2. Create new **Web Service** on Render
-3. Build command: `pip install -r requirements.txt`
-4. Start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-5. Add `GEMINI_API_KEY` in environment variables
+2. Go to [render.com](https://render.com) → New → Web Service
+3. Connect GitHub repo
+4. Configure:
+```
+Root Directory:  backend
+Build Command:   pip install -r requirements.txt
+Start Command:   python -m uvicorn main:app --host 0.0.0.0 --port $PORT
+```
+5. Environment Variables:
+```
+GEMINI_API_KEY = your_key_here
+PYTHON_VERSION = 3.11.0
+```
+6. Deploy
 
 ### Frontend (Vercel)
 
-```bash
-cd frontend
-npm run build
-vercel deploy
+1. Go to [vercel.com](https://vercel.com) → New Project → Import GitHub repo
+2. Configure:
 ```
-
-Set `VITE_API_URL` in Vercel environment variables to point to your Render backend URL.
+Root Directory:  frontend
+Framework:       Vite
+Build Command:   npm run build
+Output Dir:      dist
+```
+3. Environment Variables:
+```
+VITE_BACKEND_URL = https://health-hackathon-rift.onrender.com
+```
+4. Deploy
 
 ---
 
-## Project Structure
+## Usage
 
-```
-pharmaguard/
-├── backend/
-│   ├── main.py              # FastAPI app, VCF parsing, request handling
-│   ├── model_engine.py      # Activity scores, phenotype derivation, CPIC rules
-│   ├── llm_engine.py        # Gemini integration, prompt engineering, fallback
-│   ├── requirements.txt
-│   └── .env.example
-├── frontend/
-│   ├── src/
-│   │   └── App.jsx          # React UI — upload, results, LLM display
-│   └── package.json
-├── samples/
-│   └── *.vcf                # Test VCF files
-└── README.md
-```
+1. Open the live app at https://health-hackathon-rift.vercel.app
+2. Upload a `.vcf` file (use files from `sample_vcfs/` to test)
+3. Select one or more drugs from the panel
+4. Click **Analyze**
+5. View color-coded risk results:
+   - 🟢 **Safe** — standard dosing recommended
+   - 🟡 **Adjust Dosage** — dose modification required
+   - 🔴 **Toxic / Ineffective** — avoid or switch to alternative
+6. Expand each section to read the full LLM-generated clinical explanation
+7. Download or copy the structured JSON output
 
 ---
 
@@ -306,15 +416,11 @@ pharmaguard/
 
 | Name | Role |
 |------|------|
-| [Your Name] | Backend, ML, LLM integration |
-| [Teammate] | Frontend, UI/UX |
+| Krrish Khera | Backend, Deployment |
+| Aman Anilkumar | Frontend, UI/UX, Deployment |
+| Vaibhav Jain | Model Engine, LLM Integration |
 
----
 
 ## Clinical Disclaimer
 
-PharmaGuard is a **research and educational tool** built for the RIFT 2026 Hackathon. It is not a certified medical device and should not be used for actual clinical decision-making without validation by a licensed clinical pharmacist or physician. All recommendations are based on published CPIC guidelines and are intended to demonstrate the feasibility of AI-assisted pharmacogenomic decision support.
-
----
-
-*Built with 🧬 for RIFT 2026 · #RIFT2026 #PharmaGuard #Pharmacogenomics #AIinHealthcare*
+VariantRX is a **research and educational prototype** built for the RIFT 2026 Hackathon. It is not a certified medical device and must not be used for actual clinical decision-making without review by a licensed clinical pharmacist or physician. All risk predictions are based on published CPIC guidelines (2017–2022) and are intended to demonstrate the feasibility of AI-assisted pharmacogenomic decision support.
