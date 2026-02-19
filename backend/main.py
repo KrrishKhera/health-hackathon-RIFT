@@ -26,11 +26,20 @@ async def analyze(
     drug: str = Form(...),
     file: UploadFile = File(...)
 ):
+    MAX_FILE_SIZE = 5 * 1024 * 1024
+
     if not file.filename.endswith(".vcf"):
         raise HTTPException(
             status_code=400,
             detail="invalid file format. Only .vcf allowed."
         )
+
+    if file.size and file.size > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail="File size exceeds the 5MB limit. Please upload a smaller VCF file."
+        )
+
     drug=drug.upper().strip()
     if drug not in SUPPORTED_DRUGS:
         raise HTTPException(
@@ -94,7 +103,7 @@ async def analyze(
         gene = info_dict.get("GENE")
         star = info_dict.get("STAR")
         rs=info_dict.get("RS")
-       
+
         if gene not in TARGET_GENES:
             continue
 
@@ -122,28 +131,31 @@ async def analyze(
         parsing_success = False
     else:
         parsing_success = True
-    return {
-    "patient_id": f"PATIENT_{uuid.uuid4().hex[:6]}",
-    "drug": drug,
-    "timestamp": datetime.utcnow().isoformat(),
-    "risk_assessment": {
-        "risk_label": "Unknown",
-        "confidence_score": 0.0,
-        "severity": "none"
-    },
-    "pharmacogenomic_profile": {
-        "primary_gene": primary_gene,
-        "diplotype": detected_variants[0]["diplotype"] if detected_variants else "Unknown",
-        "phenotype": "Unknown",
-        "detected_variants": detected_variants
-    },
-    "clinical_recommendation": {},
-    "llm_generated_explanation": {
-        "summary": "VCF parsed successfully. Risk prediction not yet applied."
-    },
-    "quality_metrics": {
-        "vcf_parsing_success": parsing_success
-    }
-}
+    # Ensure a diplotype exists before passing it, otherwise use 'Unknown'
+    final_diplotype = detected_variants[0]["diplotype"] if detected_variants else "Unknown"
 
-    
+    # 1. Call the engine
+    risk_assessment, phenotype, recommendation = predict_risk(drug, primary_gene, final_diplotype)
+
+    # 2. Return the structured response
+    return {
+        "patient_id": f"PATIENT_{uuid.uuid4().hex[:6]}",
+        "drug": drug,
+        "timestamp": datetime.utcnow().isoformat(),
+        "risk_assessment": risk_assessment,
+        "pharmacogenomic_profile": {
+            "primary_gene": primary_gene,
+            "diplotype": final_diplotype,
+            "phenotype": phenotype,
+            "detected_variants": detected_variants
+        },
+        "clinical_recommendation": recommendation,
+        "llm_generated_explanation": {
+            "summary": "AI logic pending." # We will inject the Gemini output here next!
+        },
+        "quality_metrics": {
+            "vcf_parsing_success": parsing_success
+        }
+    }
+
+
