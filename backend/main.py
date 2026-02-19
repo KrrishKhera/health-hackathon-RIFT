@@ -2,6 +2,7 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 from model_engine import predict_risk
+from typing import List
 import uuid
 
 app=FastAPI()
@@ -23,7 +24,7 @@ def health_check():
     return {"status":"running"}
 @app.post("/analyze")
 async def analyze(
-    drug: str = Form(...),
+    drug: List[str] = Form(...),
     file: UploadFile = File(...)
 ):
     MAX_FILE_SIZE = 5 * 1024 * 1024
