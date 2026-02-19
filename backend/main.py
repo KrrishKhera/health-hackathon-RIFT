@@ -106,29 +106,31 @@ async def analyze(
 
         diplotype = "Unknown"
 
-    if genotype and star:
-        if genotype == "0/0":
-            diplotype = "*1/*1"
-        elif genotype == "0/1":
-            diplotype = f"*1/{star}"
-        elif genotype == "1/1":
-            diplotype = f"{star}/{star}"
+        if genotype and star:
+            if genotype == "0/0":
+                diplotype = "*1/*1"
+            elif genotype == "0/1":
+                diplotype = f"*1/{star}"
+            elif genotype == "1/1":
+                diplotype = f"{star}/{star}"
 
-    detected_variants.append({
-        "rsid": rsid,
-        "gene": gene,
-        "star": star,
-        "genotype": genotype,
-        "diplotype": diplotype
-    })
+        detected_variants.append({
+            "rsid": rsid,
+            "gene": gene,
+            "star": star,
+            "genotype": genotype,
+            "diplotype": diplotype
+        })
 
-    if primary_gene == "Unknown" and gene:
-        primary_gene = gene
+        if primary_gene == "Unknown" and gene:
+            primary_gene = gene
+
     if not detected_variants:
         parsing_success = False
     else:
         parsing_success = True
     # Ensure a diplotype exists before passing it, otherwise use 'Unknown'
+    parsing_success = len(detected_variants)>0
     final_diplotype = detected_variants[0]["diplotype"] if detected_variants else "Unknown"
 
     # 1. Call the engine
