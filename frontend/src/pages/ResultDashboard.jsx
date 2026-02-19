@@ -40,7 +40,7 @@ function ResultDashboard() {
       </h1>
 
       {/* Analysis Complete */}
-      <div className="flex flex-col items-center mt-4 mb-6">
+      <div className="flex flex-col items-center mt-12 mb-6">
         <h1 className="text-5xl font-bold text-white text-center">
           ANALYSIS COMPLETE!
         </h1>
@@ -74,7 +74,7 @@ function ResultDashboard() {
       </div>
 
       {/* Summary + Expandable Sections */}
-      <div className="w-full px-4 mb-10">
+      <div className="w-full px-10 mb-10">
         <div className="w-full border border-gray-700 rounded-xl overflow-hidden">
 
           {/* Summary Bar */}
