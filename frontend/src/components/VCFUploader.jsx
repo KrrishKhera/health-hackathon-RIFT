@@ -50,7 +50,7 @@ function VCFUploader({ onFileSelect }) {
           <span className={`text-sm truncate ${
             isValid === true ? 'text-green-300' : isValid === false ? 'text-red-400' : 'text-gray-500'}`}
             style={{ fontFamily: "'Lora', serif" }}>
-            {selectedFile ? selectedFile.name : 'Drag & drop or click to upload .vcf file'}
+            {selectedFile ? selectedFile.name : 'Click to upload .vcf file'}
           </span>
         </div>
         <span className="text-gray-600 text-xs flex-shrink-0 ml-4"
