@@ -48,11 +48,11 @@ async def analyze(
             status_code=400,
             detail="File size exceeds the 5MB limit. Please upload a smaller VCF file."
         )
-    
+
     unsupported = [d for d in drug if d not in SUPPORTED_DRUGS]
     if unsupported:
         raise HTTPException(status_code=400, detail=f"Unsupported drug(s): {', '.join(unsupported)}")
-    
+
     try:
         contents = await file.read()
         text = contents.decode("utf-8")
@@ -125,7 +125,7 @@ async def analyze(
                 diplotype = f"{star}/{star}"
 
         detected_variants.append({
-            "rsid": rs if rs else rsid,   
+            "rsid": rs if rs else rsid,
             "gene": gene,
             "star": star,
             "genotype": genotype,
@@ -143,50 +143,59 @@ async def analyze(
         parsing_success = True
 
     parsing_success = len(detected_variants)>0
-    target_gene = DRUG_TO_GENE.get(drug, "Unknown")
-    primary_gene = target_gene
+    drug = [d.strip().upper() for entry in drug for d in entry.split(",")]
+    unsupported = [d for d in drug if d not in SUPPORTED_DRUGS]
+    if unsupported:
+        raise HTTPException(status_code=400, detail=f"Unsupported drug(s): {', '.join(unsupported)}")
 
-    gene_variants = [v for v in detected_variants if v.get("gene") == target_gene]
-    final_diplotype = gene_variants[0]["diplotype"] if gene_variants else "*1/*1"
+    all_results = []
 
-    risk_assessment, phenotype, recommendation = predict_risk(drug, primary_gene, final_diplotype)
+    for current_drug in drug:
+        target_gene = DRUG_TO_GENE.get(current_drug, "Unknown")
 
-    patient_id = f"PATIENT_{uuid.uuid4().hex[:6].upper()}"
+        gene_variants = [v for v in detected_variants if v.get("gene") == target_gene]
+        final_diplotype = gene_variants[0]["diplotype"] if gene_variants else "*1/*1"
 
-    llm_explanation = generate_explanation(
-        patient_id=patient_id,
-        drug=drug,
-        gene=target_gene,
-        diplotype=final_diplotype,
-        phenotype=phenotype,
-        activity_score=recommendation.get("activity_score", -1),
-        detected_variants=detected_variants,
-        risk_label=risk_assessment["risk_label"],
-        severity=risk_assessment["severity"],
-        recommendation=recommendation.get("action", "")
-    )
+        risk_assessment, phenotype, recommendation = predict_risk(current_drug, target_gene, final_diplotype)
 
-    return {
-        "patient_id": patient_id,
-        "drug": drug,
-        "timestamp": datetime.utcnow().isoformat() + "Z",
-        "risk_assessment": risk_assessment,
-        "pharmacogenomic_profile": {
-            "primary_gene": primary_gene,
-            "diplotype": final_diplotype,
-            "phenotype": phenotype,
-            "detected_variants": detected_variants
-        },
-        "clinical_recommendation": recommendation,
-        "llm_generated_explanation": llm_explanation,
-        "quality_metrics": {
-            "vcf_parsing_success": parsing_success,
-            "variants_detected": len(detected_variants),
-            "gene_variants_for_drug": len(gene_variants),
-            "diplotype_source": "vcf_parsed" if gene_variants else "wildtype_assumed",
-            "annotation_completeness": round(len([v for v in detected_variants if v.get("star")]) / max(len(detected_variants), 1), 2),
-            "llm_explanation_status": "fallback" if "_llm_status" in llm_explanation else "generated"
-        }
-    }
+        patient_id = f"PATIENT_{uuid.uuid4().hex[:6].upper()}"
 
+        llm_explanation = generate_explanation(
+            patient_id=patient_id,
+            drug=current_drug,
+            gene=target_gene,
+            diplotype=final_diplotype,
+            phenotype=phenotype,
+            activity_score=recommendation.get("activity_score", -1),
+            detected_variants=detected_variants,
+            risk_label=risk_assessment["risk_label"],
+            severity=risk_assessment["severity"],
+            recommendation=recommendation.get("action", "")
+        )
 
+        all_results.append({
+            "patient_id": patient_id,
+            "drug": current_drug,
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "risk_assessment": risk_assessment,
+            "pharmacogenomic_profile": {
+                "primary_gene": target_gene,
+                "diplotype": final_diplotype,
+                "phenotype": phenotype,
+                "detected_variants": detected_variants
+            },
+            "clinical_recommendation": recommendation,
+            "llm_generated_explanation": llm_explanation,
+            "quality_metrics": {
+                "vcf_parsing_success": parsing_success,
+                "variants_detected": len(detected_variants),
+                "gene_variants_for_drug": len(gene_variants),
+                "diplotype_source": "vcf_parsed" if gene_variants else "wildtype_assumed",
+                "annotation_completeness": round(
+                    len([v for v in detected_variants if v.get("star")]) / max(len(detected_variants), 1), 2
+                ),
+                "llm_explanation_status": "fallback" if "_llm_status" in llm_explanation else "generated"
+            }
+        })
+
+    return all_results[0] if len(all_results) == 1 else all_results
