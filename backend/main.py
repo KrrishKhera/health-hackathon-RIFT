@@ -17,6 +17,10 @@ SUPPORTED_DRUGS = [
     "CODEINE", "WARFARIN", "CLOPIDOGREL",
     "SIMVASTATIN", "AZATHIOPRINE", "FLUOROURACIL"
 ]#these 6 drugs aman and vaibhav
+TARGET_GENES = [
+    "CYP2D6", "CYP2C19", "CYP2C9",
+    "SLCO1B1", "TPMT", "DPYD"
+]
 @app.post("/analyze")
 async def analyze(
     drug: str = Form(...),
@@ -91,26 +95,29 @@ async def analyze(
         star = info_dict.get("STAR")
         rs=info_dict.get("RS")
        
+        if gene not in TARGET_GENES:
+            continue
+
         diplotype = "Unknown"
 
-    if genotype and star:
-        if genotype == "0/0":
-            diplotype = "*1/*1"
-        elif genotype == "0/1":
-            diplotype = f"*1/{star}"
-        elif genotype == "1/1":
-            diplotype = f"{star}/{star}"
+        if genotype and star:
+            if genotype == "0/0":
+                diplotype = "*1/*1"
+            elif genotype == "0/1":
+                diplotype = f"*1/{star}"
+            elif genotype == "1/1":
+                diplotype = f"{star}/{star}"
 
-    detected_variants.append({
-        "rsid": rsid,
-        "gene": gene,
-        "star": star,
-        "genotype": genotype,
-        "diplotype": diplotype
-    })
+        detected_variants.append({
+            "rsid": rsid,
+            "gene": gene,
+            "star": star,
+            "genotype": genotype,
+            "diplotype": diplotype
+        })
 
-    if primary_gene == "Unknown" and gene:
-        primary_gene = gene
+        if primary_gene == "Unknown" and gene:
+            primary_gene = gene
     if not detected_variants:
         parsing_success = False
     else:
