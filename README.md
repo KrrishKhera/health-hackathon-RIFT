@@ -1,4 +1,4 @@
-# VariantRX — Pharmacogenomic Risk Prediction System
+# Variant-RX — Pharmacogenomic Risk Prediction System
 
 > **Transforming Genetic Data into Safer Prescriptions.**
 > Clinical decision support that analyzes patient VCF files to predict personalized drug risks and generate explainable, CPIC-aligned recommendations — with zero external API dependencies.
