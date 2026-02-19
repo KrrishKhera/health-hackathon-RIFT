@@ -48,7 +48,7 @@ function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-pink-950 via-gray-950 to-gray-950 px-8 py-6 flex flex-col">
 
       {/* Project name */}
-      <h1 className="text-5xl font-bold text-white tracking-widest text-center w-full">VARIANTRX</h1>
+      <h1 className="text-5xl font-bold text-white tracking-widest text-center w-full">Variant-RX</h1>
 
       {/* Tagline */}
       <div className="flex flex-col items-center mt-20">
@@ -59,7 +59,7 @@ function HomePage() {
 
       {/* word.word.word */}
       <p className="text-gray-400 text-base tracking-widest text-center mt-6">
-        PREDICT. PREVENT. PERSONALIZE.
+        Predict. Prevent. Personalize.
       </p>
 
       {/* Upload and Drug selector */}
