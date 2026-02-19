@@ -13,7 +13,7 @@
 |---|---|
 | 🌐 Live Demo | `[your-deployed-url]` |
 | 🎥 LinkedIn Demo Video | `[your-linkedin-video-url]` |
-| 📦 GitHub Repository | `[your-github-url]` |
+| 📦 GitHub Repository | `https://github.com/KrrishKhera/health-hackathon-RIFT.git` |
 
 ---
 
