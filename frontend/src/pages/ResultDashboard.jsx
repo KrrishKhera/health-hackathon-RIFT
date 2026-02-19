@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import RiskBadge from '../components/RiskBadge'
 import ExpandableSection from '../components/ExpandableSection'
@@ -13,10 +13,13 @@ function ResultDashboard() {
   const results = state?.results || []
   const result = results[activeIndex]
 
+  useEffect(() => {
   if (!result) {
     navigate('/')
-    return null
   }
+  }, [result])
+
+  if (!result) return null
 
   const llm = result.llm_generated_explanation || {}
 
@@ -37,7 +40,7 @@ function ResultDashboard() {
       </h1>
 
       {/* Analysis Complete */}
-      <div className="flex flex-col items-center mt-20 mb-6">
+      <div className="flex flex-col items-center mt-4 mb-6">
         <h1 className="text-5xl font-bold text-white text-center">
           ANALYSIS COMPLETE!
         </h1>
@@ -45,7 +48,7 @@ function ResultDashboard() {
 
       {/* Drug Tabs — only show if multiple drugs */}
       {results.length > 1 && (
-        <div className="flex gap-5 justify-center mb-10">
+        <div className="flex gap-5 justify-center mb-8">
           {results.map((r, i) => (
             <button
               key={i}
@@ -71,7 +74,7 @@ function ResultDashboard() {
       </div>
 
       {/* Summary + Expandable Sections */}
-      <div className="max-w-4xl w-full mx-auto mb-10">
+      <div className="w-full px-4 mb-10">
         <div className="w-full border border-gray-700 rounded-xl overflow-hidden">
 
           {/* Summary Bar */}
