@@ -6,7 +6,7 @@ from llm_engine import generate_explanation
 from typing import List
 import uuid
 
-app=FastAPI()
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -15,12 +15,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-TARGET_GENES = ["CYP2D6", "CYP2C19", "CYP2C9", "SLCO1B1", "TPMT", "DPYD"]
-SUPPORTED_DRUGS = [
-    "CODEINE", "WARFARIN", "CLOPIDOGREL",
-    "SIMVASTATIN", "AZATHIOPRINE", "FLUOROURACIL"
-]
 
+TARGET_GENES = ["CYP2D6", "CYP2C19", "CYP2C9", "SLCO1B1", "TPMT", "DPYD"]
+SUPPORTED_DRUGS = ["CODEINE", "WARFARIN", "CLOPIDOGREL", "SIMVASTATIN", "AZATHIOPRINE", "FLUOROURACIL"]
 DRUG_TO_GENE = {
     "CODEINE": "CYP2D6",
     "WARFARIN": "CYP2C9",
@@ -30,6 +27,7 @@ DRUG_TO_GENE = {
     "FLUOROURACIL": "DPYD"
 }
 
+
 @app.post("/analyze")
 async def analyze(
     drug: List[str] = Form(...),
@@ -38,84 +36,66 @@ async def analyze(
     MAX_FILE_SIZE = 5 * 1024 * 1024
 
     if not file.filename.endswith(".vcf"):
-        raise HTTPException(
-            status_code=400,
-            detail="invalid file format. Only .vcf allowed."
-        )
+        raise HTTPException(status_code=400, detail="Invalid file format. Only .vcf allowed.")
 
-    if file.size and file.size > MAX_FILE_SIZE:
-        raise HTTPException(
-            status_code=400,
-            detail="File size exceeds the 5MB limit. Please upload a smaller VCF file."
-        )
+    contents = await file.read()
 
-    unsupported = [d for d in drug if d not in SUPPORTED_DRUGS]
-    if unsupported:
-        raise HTTPException(status_code=400, detail=f"Unsupported drug(s): {', '.join(unsupported)}")
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=400, detail="File size exceeds the 5MB limit.")
 
     try:
-        contents = await file.read()
         text = contents.decode("utf-8")
-    except:
-        raise HTTPException(
-            status_code=400,
-            detail="Unable to read the VCF file."
-        )
+    except UnicodeDecodeError:
+        raise HTTPException(status_code=400, detail="Unable to read VCF file. Must be UTF-8 encoded.")
+
     if not text.startswith("##fileformat=VCF"):
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid VCF header format."
-        )
+        raise HTTPException(status_code=400, detail="Invalid VCF header format.")
+
     if "#CHROM" not in text:
-        raise HTTPException(
-            status_code=400,
-            detail="VCF column header line."
-        )
+        raise HTTPException(status_code=400, detail="Missing VCF column header line (#CHROM).")
+
+    # Normalise and validate drugs
+    drug = [d.strip().upper() for entry in drug for d in entry.split(",")]
+    unsupported = [d for d in drug if d not in SUPPORTED_DRUGS]
+    if unsupported:
+        raise HTTPException(status_code=400, detail=f"Unsupported drug(s): {', '.join(unsupported)}. Supported: {', '.join(SUPPORTED_DRUGS)}")
+
+    # Parse VCF
     detected_variants = []
-    primary_gene = "Unknown"
-
-    lines = text.splitlines()
-
-    for line in lines:
+    for line in text.splitlines():
         if line.startswith("#"):
             continue
-
         columns = line.strip().split("\t")
-
         if len(columns) < 10:
             continue
 
-        rsid = columns[2]
-        ref = columns[3]
-        alt = columns[4]
-        info_field = columns[7]
+        rsid         = columns[2]
+        ref          = columns[3]
+        alt          = columns[4]
+        info_field   = columns[7]
         format_field = columns[8]
         sample_field = columns[9]
-        genotype = None
-        format_keys = format_field.split(":")
-        sample_values = sample_field.split(":")
 
+        genotype = None
+        format_keys   = format_field.split(":")
+        sample_values = sample_field.split(":")
         if "GT" in format_keys:
-            gt_index = format_keys.index("GT")
-            genotype = sample_values[gt_index]
+            genotype = sample_values[format_keys.index("GT")]
 
         info_dict = {}
-        info_parts = info_field.split(";")
-
-        for part in info_parts:
+        for part in info_field.split(";"):
             if "=" in part:
-                key, value = part.split("=",1)
-                info_dict[key] = value
+                k, v = part.split("=", 1)
+                info_dict[k] = v
 
         gene = info_dict.get("GENE")
         star = info_dict.get("STAR")
-        rs=info_dict.get("RS")
+        rs   = info_dict.get("RS")
 
         if gene not in TARGET_GENES:
             continue
 
         diplotype = "Unknown"
-
         if genotype and star:
             if genotype == "0/0":
                 diplotype = "*1/*1"
@@ -125,34 +105,20 @@ async def analyze(
                 diplotype = f"{star}/{star}"
 
         detected_variants.append({
-            "rsid": rs if rs else rsid,
-            "gene": gene,
-            "star": star,
+            "rsid":     rs if rs else rsid,
+            "gene":     gene,
+            "star":     star,
             "genotype": genotype,
-            "diplotype": diplotype,
-            "ref": ref,
-            "alt": alt
+            "diplotype":diplotype,
+            "ref":      ref,
+            "alt":      alt
         })
 
-        if primary_gene == "Unknown" and gene:
-            primary_gene = gene
-
-    if not detected_variants:
-        parsing_success = False
-    else:
-        parsing_success = True
-
-    parsing_success = len(detected_variants)>0
-    drug = [d.strip().upper() for entry in drug for d in entry.split(",")]
-    unsupported = [d for d in drug if d not in SUPPORTED_DRUGS]
-    if unsupported:
-        raise HTTPException(status_code=400, detail=f"Unsupported drug(s): {', '.join(unsupported)}")
-
+    parsing_success = len(detected_variants) > 0
     all_results = []
 
     for current_drug in drug:
-        target_gene = DRUG_TO_GENE.get(current_drug, "Unknown")
-
+        target_gene   = DRUG_TO_GENE[current_drug]
         gene_variants = [v for v in detected_variants if v.get("gene") == target_gene]
         final_diplotype = gene_variants[0]["diplotype"] if gene_variants else "*1/*1"
 
@@ -194,7 +160,7 @@ async def analyze(
                 "annotation_completeness": round(
                     len([v for v in detected_variants if v.get("star")]) / max(len(detected_variants), 1), 2
                 ),
-                "llm_explanation_status": "fallback" if "_llm_status" in llm_explanation else "generated"
+                "llm_explanation_status": "rule_based"
             }
         })
 

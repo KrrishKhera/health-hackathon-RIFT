@@ -1,6 +1,3 @@
-import json
-import os
-
 def generate_explanation(
     patient_id, drug, gene, diplotype, phenotype,
     activity_score, detected_variants, risk_label, severity, recommendation
@@ -15,29 +12,31 @@ def generate_explanation(
         "URM": "Ultrarapid Metabolizer"
     }.get(phenotype, phenotype)
 
+    is_reduced = isinstance(activity_score, (int, float)) and activity_score < 2
+
     mechanisms = {
-        "CYP2D6": f"CYP2D6 encodes a hepatic cytochrome P450 enzyme responsible for metabolizing ~25% of clinically used drugs. The {diplotype} diplotype yields an activity score of {activity_str}, resulting in {phenotype_full} status and {'reduced' if activity_score < 2 else 'normal'} enzymatic conversion of {drug}.",
-        "CYP2C19": f"CYP2C19 encodes a key hepatic oxidase involved in the bioactivation of prodrugs like clopidogrel. The {diplotype} diplotype yields an activity score of {activity_str}. As a {phenotype_full}, the patient shows {'impaired' if activity_score < 2 else 'normal'} conversion of {drug} to its active metabolite.",
-        "CYP2C9": f"CYP2C9 is the primary enzyme responsible for metabolizing warfarin's S-enantiomer. The {diplotype} diplotype results in an activity score of {activity_str}, indicating {phenotype_full} status and {'reduced clearance with increased bleeding risk' if activity_score < 2 else 'normal warfarin clearance'}.",
-        "SLCO1B1": f"SLCO1B1 encodes the OATP1B1 hepatic uptake transporter responsible for statin clearance. The {diplotype} diplotype impairs simvastatin transport into hepatocytes, increasing plasma drug exposure and myopathy risk.",
-        "TPMT": f"TPMT encodes thiopurine methyltransferase, which inactivates thiopurine drugs like azathioprine. The {diplotype} diplotype yields activity score {activity_str}. Reduced TPMT activity leads to accumulation of cytotoxic thioguanine nucleotides.",
-        "DPYD": f"DPYD encodes dihydropyrimidine dehydrogenase, responsible for ~80% of fluorouracil catabolism. The {diplotype} diplotype significantly reduces enzymatic breakdown, causing toxic drug accumulation.",
+        "CYP2D6":   f"CYP2D6 encodes a hepatic cytochrome P450 enzyme responsible for metabolizing ~25% of clinically used drugs. The {diplotype} diplotype yields an activity score of {activity_str}, resulting in {phenotype_full} status and {'reduced' if is_reduced else 'normal'} enzymatic conversion of {drug}.",
+        "CYP2C19":  f"CYP2C19 encodes a key hepatic oxidase involved in the bioactivation of prodrugs like clopidogrel. The {diplotype} diplotype yields an activity score of {activity_str}. As a {phenotype_full}, the patient shows {'impaired' if is_reduced else 'normal'} conversion of {drug} to its active metabolite.",
+        "CYP2C9":   f"CYP2C9 is the primary enzyme responsible for metabolizing warfarin's S-enantiomer. The {diplotype} diplotype results in an activity score of {activity_str}, indicating {phenotype_full} status and {'reduced clearance with increased bleeding risk' if is_reduced else 'normal warfarin clearance'}.",
+        "SLCO1B1":  f"SLCO1B1 encodes the OATP1B1 hepatic uptake transporter responsible for statin clearance. The {diplotype} diplotype {'impairs simvastatin transport into hepatocytes, increasing plasma drug exposure and myopathy risk' if is_reduced else 'supports normal simvastatin hepatic uptake and clearance'}.",
+        "TPMT":     f"TPMT encodes thiopurine methyltransferase, which inactivates thiopurine drugs like azathioprine. The {diplotype} diplotype yields activity score {activity_str}. {'Reduced TPMT activity leads to accumulation of cytotoxic thioguanine nucleotides.' if is_reduced else 'Normal TPMT activity ensures standard azathioprine inactivation.'}",
+        "DPYD":     f"DPYD encodes dihydropyrimidine dehydrogenase, responsible for ~80% of fluorouracil catabolism. The {diplotype} diplotype {'significantly reduces enzymatic breakdown, causing toxic drug accumulation' if is_reduced else 'supports normal fluorouracil catabolism'}.",
     }
 
     clinical_contexts = {
-        "Toxic": f"With {phenotype_full} status, {drug} cannot be safely metabolized at standard doses. Toxic drug or metabolite accumulation is expected, posing serious risk of {'respiratory depression' if drug == 'CODEINE' else 'severe systemic toxicity'}.",
-        "Ineffective": f"With {phenotype_full} status, {drug} {'cannot be activated' if drug in ['CODEINE','CLOPIDOGREL'] else 'is not processed efficiently'}. Standard doses are unlikely to produce therapeutic benefit.",
+        "Toxic":         f"With {phenotype_full} status, {drug} cannot be safely metabolized at standard doses. Toxic drug or metabolite accumulation is expected, posing serious risk of {'respiratory depression' if drug == 'CODEINE' else 'severe systemic toxicity'}.",
+        "Ineffective":   f"With {phenotype_full} status, {drug} {'cannot be activated' if drug in ['CODEINE', 'CLOPIDOGREL'] else 'is not processed efficiently'}. Standard doses are unlikely to produce therapeutic benefit.",
         "Adjust Dosage": f"With {phenotype_full} status, standard doses of {drug} carry elevated risk. Dose adjustment is required to maintain therapeutic efficacy while minimizing toxicity.",
-        "Safe": f"The {phenotype_full} phenotype is consistent with normal {drug} metabolism. Standard dosing is expected to achieve therapeutic levels without increased risk.",
+        "Safe":          f"The {phenotype_full} phenotype is consistent with normal {drug} metabolism. Standard dosing is expected to achieve therapeutic levels without increased risk.",
     }
 
     alternatives = {
-        "CODEINE":       "Consider morphine or hydromorphone (direct-acting opioids not requiring CYP2D6 activation), or non-opioid analgesics such as acetaminophen or NSAIDs.",
-        "WARFARIN":      "If dose adjustment is insufficient, consider direct oral anticoagulants (DOACs) such as apixaban or rivaroxaban, which do not require CYP2C9 metabolism.",
-        "CLOPIDOGREL":   "Prasugrel or ticagrelor are recommended alternatives — both are effective regardless of CYP2C19 status per CPIC 2022 guidelines.",
-        "SIMVASTATIN":   "Pravastatin or rosuvastatin are preferred alternatives — both show minimal SLCO1B1-dependent transport and carry lower myopathy risk.",
-        "AZATHIOPRINE":  "Mycophenolate mofetil is the primary alternative for immunosuppression in TPMT-deficient patients. If thiopurine therapy is essential, reduce dose by 90% with CBC monitoring.",
-        "FLUOROURACIL":  "Alternative chemotherapy regimens not dependent on DPYD should be considered. Consult oncology for regimen adjustment based on cancer type and treatment protocol.",
+        "CODEINE":      "Consider morphine or hydromorphone (direct-acting opioids not requiring CYP2D6 activation), or non-opioid analgesics such as acetaminophen or NSAIDs.",
+        "WARFARIN":     "If dose adjustment is insufficient, consider direct oral anticoagulants (DOACs) such as apixaban or rivaroxaban, which do not require CYP2C9 metabolism.",
+        "CLOPIDOGREL":  "Prasugrel or ticagrelor are recommended alternatives — both are effective regardless of CYP2C19 status per CPIC 2022 guidelines.",
+        "SIMVASTATIN":  "Pravastatin or rosuvastatin are preferred alternatives — both show minimal SLCO1B1-dependent transport and carry lower myopathy risk.",
+        "AZATHIOPRINE": "Mycophenolate mofetil is the primary alternative for immunosuppression in TPMT-deficient patients. If thiopurine therapy is essential, reduce dose by 90% with CBC monitoring.",
+        "FLUOROURACIL": "Alternative chemotherapy regimens not dependent on DPYD should be considered. Consult oncology for regimen adjustment based on cancer type and treatment protocol.",
     }
 
     monitoring = {
@@ -55,18 +54,4 @@ def generate_explanation(
         "alternative_options": alternatives.get(drug, "Consult clinical pharmacist for evidence-based alternatives.") if severity in ["moderate", "high", "critical"] else "No alternatives required.",
         "monitoring_parameters": monitoring.get(risk_label, "Follow institutional pharmacogenomics monitoring protocol."),
         "_llm_status": "rule_based"
-    }
-
-
-def _fallback_explanation(drug, gene, diplotype, phenotype, risk_label, recommendation, error="unknown"):
-
-    return {
-        "summary": f"Patient carries the {diplotype} diplotype for {gene}, consistent with {phenotype} status. Risk assessment for {drug}: {risk_label}.",
-        "mechanism": f"The {diplotype} diplotype alters {gene} enzymatic activity, directly affecting {drug} metabolism.",
-        "variant_impact": "Detailed variant annotation available in pharmacogenomic_profile.detected_variants.",
-        "clinical_context": f"As a {phenotype}, this patient's response to {drug} is predicted to be: {risk_label}.",
-        "alternative_options": "Consult clinical pharmacist for evidence-based alternatives.",
-        "monitoring_parameters": "Follow institutional pharmacogenomics monitoring protocol.",
-        "_llm_status": "fallback",
-        "_llm_error": error
     }

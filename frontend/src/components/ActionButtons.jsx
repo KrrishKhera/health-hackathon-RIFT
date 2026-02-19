@@ -1,10 +1,10 @@
 import { useState } from 'react'
 
 function ActionButtons({ data }) {
+  const [copied, setCopied] = useState(false)
 
   const handleDownload = () => {
-    const jsonString = JSON.stringify(data, null, 2)
-    const blob = new Blob([jsonString], { type: 'application/json' })
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
@@ -13,8 +13,6 @@ function ActionButtons({ data }) {
     URL.revokeObjectURL(url)
   }
 
-  const [copied, setCopied] = useState(false)
-
   const handleCopy = async () => {
     await navigator.clipboard.writeText(JSON.stringify(data, null, 2))
     setCopied(true)
@@ -22,22 +20,19 @@ function ActionButtons({ data }) {
   }
 
   return (
-    <div className="flex gap-4 justify-center mt-6">
-      
-      <button
-        onClick={handleDownload}
-        className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium transition"
-      >
-        ⬇ Download JSON
+    <div className="flex gap-4 justify-center">
+      <button onClick={handleDownload}
+        className="flex items-center gap-2 px-6 py-3 bg-pink-700 hover:bg-pink-600 text-white rounded-xl font-medium transition text-sm"
+        style={{ fontFamily: "'Playfair Display', serif" }}>
+        ↓ Download JSON
       </button>
-
-      <button
-        onClick={handleCopy}
-        className="flex items-center gap-2 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-medium transition"
-      >
-        {copied ? '✓ Copied!' : '⧉ Copy to Clipboard'}
+      <button onClick={handleCopy}
+        className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition text-sm ${
+          copied ? 'bg-green-700 text-white' : 'bg-gray-700 hover:bg-gray-600 text-white'
+        }`}
+        style={{ fontFamily: "'Playfair Display', serif" }}>
+        {copied ? '✓ Copied!' : '⧉ Copy JSON'}
       </button>
-
     </div>
   )
 }
