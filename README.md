@@ -25,6 +25,8 @@
 | <img src="https://github.com/user-attachments/assets/2733a592-e9d6-45d0-be7f-f7e50bf6471e" width="450" /> | <img src="https://github.com/user-attachments/assets/4df8db0f-7ec0-4db9-8ce2-e67a8da63ed8" width="450" /> |
 | <img src="https://github.com/user-attachments/assets/aaaa7a80-e62f-4b71-b206-31da94489244" width="450" /> | <img src="https://github.com/user-attachments/assets/65804aaf-07d1-43df-9848-8f16a5ddc39f" width="450" /> |
 
+---
+
 ## Problem Statement
 
 Adverse drug reactions kill over **100,000 Americans annually** — many of which are preventable through pharmacogenomic testing. A patient's genetic variants directly affect how their body metabolizes medications, yet this information is rarely integrated into prescribing decisions due to the complexity of interpreting genomic data.
