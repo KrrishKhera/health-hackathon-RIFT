@@ -12,7 +12,7 @@
 | | |
 |---|---|
 | 🌐 **Live Demo** | https://health-hackathon-rift.vercel.app |
-| 🎥 **LinkedIn Video** | `[your-linkedin-video-url]` |
+| 🎥 **LinkedIn Video** | https://www.linkedin.com/feed/update/urn:li:activity:7430425224044498944/ |
 | 📦 **GitHub Repository** | https://github.com/KrrishKhera/health-hackathon-RIFT.git |
 | ⚙️ **Backend API** | https://health-hackathon-rift.onrender.com |
 
@@ -20,9 +20,11 @@
 
 ## Screenshots
 
-| | |
-|---|---|
-| <img width="600" src="https://github.com/user-attachments/assets/1ccb6131-849a-41a0-acee-e5d198e8281d" /> | <img width="600" src="https://github.com/user-attachments/assets/b0b7f519-a4b8-409b-9910-2e697e260280" /> |
+| 
+|--<img width="1440" height="821" alt="Screenshot 2026-02-20 at 7 12 36 AM" src="https://github.com/user-attachments/assets/0cb67681-be9d-45ee-908f-9077bf2c1025" />
+-|---|<img width="1440" height="820" alt="Screenshot 2026-02-20 at 7 14 43 AM" src="https://github.com/user-attachments/assets/bd9b4be4-3dda-4025-b319-bd30e28f339a" />
+
+|  | <img width="600" src="https://github.com/user-attachments/assets/b0b7f519-a4b8-409b-9910-2e697e260280" /> |
 | <img width="600" src="https://github.com/user-attachments/assets/e2aef9ad-a512-46f5-af5a-ec38c0e8102a" /> | <img width="600" src="https://github.com/user-attachments/assets/9fbc81de-4800-4456-89e0-4745b5da2127" /> |
 
 <img width="1280" src="https://github.com/user-attachments/assets/e7873339-df54-4f24-ad8b-0842182415cb" />
